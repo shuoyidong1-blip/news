@@ -1,0 +1,42 @@
+name: Daily Digital News to Slack
+
+on:
+  schedule:
+    # 毎日 08:00 JST (= 前日 23:00 UTC) に実行
+    - cron: "0 23 * * *"
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+jobs:
+  fetch-and-post:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run news bot
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+        run: python main.py
+
+      - name: Persist last run state
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          if ! git diff --quiet -- last_run.json; then
+            git add last_run.json
+            git commit -m "chore: update last_run.json [skip ci]"
+            git push
+          else
+            echo "No state change to commit."
+          fi
