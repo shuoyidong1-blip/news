@@ -21,6 +21,7 @@ STATE_FILE = Path(__file__).resolve().parent / "last_run.json"
 REQUEST_TIMEOUT = 20
 FIRST_RUN_LOOKBACK_HOURS = 24
 SLACK_TEXT_LIMIT = 2900  # Slack section text の 3000 文字制限に対する安全マージン
+SUMMARY_LIMIT = 300
 
 FEEDS: dict[str, str] = {
     "TechCrunch Japan": "https://jp.techcrunch.com/feed/",
@@ -113,6 +114,12 @@ def parse_published(entry: Any) -> datetime | None:
             except (TypeError, ValueError):
                 continue
     return None
+
+
+def truncate_summary(summary: str) -> str:
+    if len(summary) <= SUMMARY_LIMIT:
+        return summary
+    return summary[:SUMMARY_LIMIT] + "..."
 
 
 def normalize_title(title: str) -> str:
@@ -229,7 +236,10 @@ def build_slack_blocks(articles: list[dict[str, Any]]) -> list[dict[str, Any]]:
         for article in items:
             published = article["published"]
             time_str = published.astimezone(JST).strftime("%m/%d %H:%M") if published else ""
-            line = f"• <{article['link']}|{article['title']}>\n   _{article['source']}"
+            line = f"• <{article['link']}|{article['title']}>"
+            if article["summary"]:
+                line += f"\n  {truncate_summary(article['summary'])}"
+            line += f"\n  _{article['source']}"
             line += f" - {time_str}_" if time_str else "_"
             lines.append(line)
 
