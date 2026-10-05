@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
+<title>飛行機シューティング</title>
+<style>
+html,body{margin:0;height:100%;background:#000;color:#fff;font-family:sans-serif;overflow:hidden}
+canvas{display:block;margin:0 auto;background:#0a1030;touch-action:none;max-height:100vh}
+</style>
+</head>
+<body>
+<canvas id="c" width="480" height="720"></canvas>
+<script>
+const cv=document.getElementById('c'),ctx=cv.getContext('2d'),W=cv.width,H=cv.height;
+let keys={},touch=null,state='title',score=0,hi=+localStorage.hi||0,t=0;
+let p,bullets,enemies,ebullets,parts,stars;
+const rnd=(a,b)=>a+Math.random()*(b-a);
+function reset(){
+  p={x:W/2,y:H-80,r:14,hp:3,cd:0,inv:0};
+  bullets=[];enemies=[];ebullets=[];parts=[];score=0;t=0;
+  stars=Array.from({length:60},()=>({x:rnd(0,W),y:rnd(0,H),s:rnd(1,4)}));
+}
+reset();
+addEventListener('keydown',e=>{keys[e.key]=1;if(e.key==' '||e.key=='Enter'){if(state!='play'){reset();state='play'}}
+  if(e.key.startsWith('Arrow')||e.key==' ')e.preventDefault()});
+addEventListener('keyup',e=>keys[e.key]=0);
+function pos(e){const r=cv.getBoundingClientRect(),q=e.touches?e.touches[0]:e;
+  return{x:(q.clientX-r.left)*W/r.width,y:(q.clientY-r.top)*H/r.height}}
+cv.addEventListener('pointerdown',e=>{if(state!='play'){reset();state='play'}touch=pos(e)});
+cv.addEventListener('pointermove',e=>{if(touch)touch=pos(e)});
+addEventListener('pointerup',()=>touch=null);
+function boom(x,y,n,c){for(let i=0;i<n;i++)parts.push({x,y,vx:rnd(-4,4),vy:rnd(-4,4),l:rnd(15,35),c})}
+function spawn(){
+  const k=Math.random();
+  if(k<.7)enemies.push({x:rnd(30,W-30),y:-20,vx:rnd(-1,1),vy:rnd(1.5,3)+t/3000,r:14,hp:1,type:0,cd:rnd(30,90)});
+  else enemies.push({x:rnd(40,W-40),y:-30,vx:rnd(-.5,.5),vy:1,r:22,hp:5,type:1,cd:40});
+}
+function plane(x,y,c,down){
+  ctx.save();ctx.translate(x,y);if(down)ctx.scale(1,-1);ctx.fillStyle=c;
+  ctx.beginPath();ctx.moveTo(0,-20);ctx.lineTo(5,-4);ctx.lineTo(22,8);ctx.lineTo(22,13);ctx.lineTo(5,8);
+  ctx.lineTo(3,16);ctx.lineTo(10,20);ctx.lineTo(-10,20);ctx.lineTo(-3,16);ctx.lineTo(-5,8);
+  ctx.lineTo(-22,13);ctx.lineTo(-22,8);ctx.lineTo(-5,-4);ctx.closePath();ctx.fill();ctx.restore();
+}
+function hit(a,b,r){return(a.x-b.x)**2+(a.y-b.y)**2<r*r}
+function update(){
+  t++;
+  const sp=5;
+  if(keys.ArrowLeft||keys.a)p.x-=sp;if(keys.ArrowRight||keys.d)p.x+=sp;
+  if(keys.ArrowUp||keys.w)p.y-=sp;if(keys.ArrowDown||keys.s)p.y+=sp;
+  if(touch){p.x+=(touch.x-p.x)*.25;p.y+=(touch.y-60-p.y)*.25}
+  p.x=Math.max(20,Math.min(W-20,p.x));p.y=Math.max(30,Math.min(H-30,p.y));
+  if(p.cd>0)p.cd--;
+  if(p.cd==0&&(keys[' ']||touch||keys.z)){bullets.push({x:p.x-8,y:p.y-10},{x:p.x+8,y:p.y-10});p.cd=8}
+  if(p.inv>0)p.inv--;
+  if(t%Math.max(18,50-t/200|0)==0)spawn();
+  bullets.forEach(b=>b.y-=10);bullets=bullets.filter(b=>b.y>-10);
+  enemies.forEach(e=>{e.x+=e.vx;e.y+=e.vy;if(e.x<20||e.x>W-20)e.vx*=-1;
+    if(--e.cd<=0&&e.y>0&&e.y<H*.6){e.cd=e.type?45:rnd(70,130);
+      const d=Math.hypot(p.x-e.x,p.y-e.y)||1;ebullets.push({x:e.x,y:e.y,vx:(p.x-e.x)/d*3.5,vy:(p.y-e.y)/d*3.5})}
+    bullets.forEach(b=>{if(!b.d&&hit(b,e,e.r+4)){b.d=1;e.hp--;boom(b.x,b.y,3,'#ff0')}});
+    if(e.hp<=0){e.dead=1;score+=e.type?50:10;boom(e.x,e.y,e.type?30:15,'#f80')}
+    if(p.inv==0&&hit(p,e,e.r+10))damage()});
+  bullets=bullets.filter(b=>!b.d);
+  enemies=enemies.filter(e=>!e.dead&&e.y<H+40);
+  ebullets.forEach(b=>{b.x+=b.vx;b.y+=b.vy;if(p.inv==0&&hit(p,b,p.r))damage()});
+  ebullets=ebullets.filter(b=>b.x>-10&&b.x<W+10&&b.y>-10&&b.y<H+10);
+  parts.forEach(q=>{q.x+=q.vx;q.y+=q.vy;q.l--});parts=parts.filter(q=>q.l>0);
+  stars.forEach(s=>{s.y+=s.s;if(s.y>H){s.y=0;s.x=rnd(0,W)}});
+}
+function damage(){
+  p.hp--;p.inv=90;boom(p.x,p.y,25,'#0ff');ebullets=[];
+  if(p.hp<=0){state='over';hi=Math.max(hi,score);localStorage.hi=hi}
+}
+function draw(){
+  ctx.fillStyle='#0a1030';ctx.fillRect(0,0,W,H);
+  ctx.fillStyle='#fff';stars.forEach(s=>ctx.fillRect(s.x,s.y,s.s/2,s.s));
+  enemies.forEach(e=>plane(e.x,e.y,e.type?'#c33':'#e94',1));
+  ctx.fillStyle='#ff0';bullets.forEach(b=>ctx.fillRect(b.x-2,b.y-8,4,12));
+  ctx.fillStyle='#f55';ebullets.forEach(b=>{ctx.beginPath();ctx.arc(b.x,b.y,4,0,7);ctx.fill()});
+  if(state=='play'&&(p.inv%8<4))plane(p.x,p.y,'#4cf',0);
+  parts.forEach(q=>{ctx.fillStyle=q.c;ctx.globalAlpha=q.l/35;ctx.fillRect(q.x,q.y,3,3)});ctx.globalAlpha=1;
+  ctx.fillStyle='#fff';ctx.font='18px sans-serif';ctx.textAlign='left';
+  ctx.fillText('SCORE '+score,10,26);ctx.fillText('HI '+hi,10,50);
+  ctx.textAlign='right';ctx.fillText('♥'.repeat(Math.max(0,p.hp)),W-10,26);
+  ctx.textAlign='center';
+  if(state!='play'){
+    ctx.fillStyle='rgba(0,0,0,.6)';ctx.fillRect(0,0,W,H);ctx.fillStyle='#fff';
+    ctx.font='36px sans-serif';ctx.fillText(state=='title'?'飛行機シューティング':'GAME OVER',W/2,260);
+    ctx.font='20px sans-serif';
+    if(state=='over')ctx.fillText('SCORE '+score,W/2,310);
+    ctx.fillText('Space / タップで開始',W/2,360);
+    ctx.fillText('矢印/WASD:移動  Space/Z:ショット',W/2,400);
+  }
+}
+(function loop(){if(state=='play')update();draw();requestAnimationFrame(loop)})();
+</script>
+</body>
+</html>
