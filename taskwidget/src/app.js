@@ -4,7 +4,9 @@ const $ = (id) => document.getElementById(id);
 const load = (k, d) => { try { return JSON.parse(localStorage.getItem(k)) ?? d; } catch { return d; } };
 const save = (k, v) => localStorage.setItem(k, JSON.stringify(v));
 
+const uid = () => "t" + Math.random().toString(36).slice(2, 9) + Date.now().toString(36);
 let tasks = load("tasks", []);
+if (tasks.some((t) => !t.id)) { tasks.forEach((t) => { t.id = t.id || uid(); }); save("tasks", tasks); }
 let cfg = Object.assign({ mode: "top", opacity: 85, fontsize: 14 }, load("cfg", {}));
 
 async function applyMode() {
@@ -20,7 +22,23 @@ function applyStyle() {
   document.documentElement.style.setProperty("--fs", cfg.fontsize + "px");
 }
 
+async function openFlow(t) {
+  const label = "flow-" + t.id;
+  const W = T.webviewWindow.WebviewWindow;
+  try {
+    const ex = await W.getByLabel(label);
+    if (ex) { await ex.unminimize(); await ex.show(); await ex.setFocus(); return; }
+    const w = new W(label, { url: "flow.html", title: "手順: " + t.text, width: 960, height: 640, center: true, focus: true });
+    w.once("tauri://error", (e) => console.error(e));
+  } catch (e) { console.error(e); }
+}
+async function dropFlow(t) {
+  const fs = load("flows", {}); delete fs[t.id]; save("flows", fs);
+  try { const ex = await T.webviewWindow.WebviewWindow.getByLabel("flow-" + t.id); if (ex) await ex.close(); } catch {}
+}
+
 function render() {
+  const flows = load("flows", {});
   const ul = $("list");
   ul.textContent = "";
   const sorted = [...tasks.keys()].sort((a, b) => tasks[a].done - tasks[b].done);
@@ -43,8 +61,14 @@ function render() {
     };
     const x = document.createElement("button");
     x.className = "x"; x.textContent = "✕";
-    x.onclick = () => { tasks.splice(i, 1); commit(); };
-    li.append(cb, span, x);
+    x.onclick = () => { dropFlow(t); tasks.splice(i, 1); commit(); };
+    const n = (flows[t.id]?.nodes || []).length;
+    const f = document.createElement("button");
+    f.className = "f" + (n ? " has" : "");
+    f.textContent = n ? "🔀" + n : "🔀";
+    f.title = "手順フローを開く";
+    f.onclick = () => openFlow(t);
+    li.append(cb, span, f, x);
     ul.append(li);
   }
 }
@@ -56,8 +80,12 @@ $("add").onkeydown = (e) => {
     e.target.value = ""; commit();
   }
 };
-$("clear").onclick = () => { tasks = tasks.filter((t) => !t.done); commit(); };
-$("quit").onclick = () => win.close();
+$("clear").onclick = () => { tasks.filter((t) => t.done).forEach(dropFlow); tasks = tasks.filter((t) => !t.done); commit(); };
+$("quit").onclick = async () => {
+  try { for (const w of await T.webviewWindow.getAllWebviewWindows()) if (w.label !== win.label) await w.close(); } catch {}
+  win.close();
+};
+window.addEventListener("storage", (e) => { if (e.key === "flows" && !document.querySelector(".edit")) render(); });
 $("gear").onclick = () => { $("settings").hidden = !$("settings").hidden; };
 
 $("mode").value = cfg.mode;

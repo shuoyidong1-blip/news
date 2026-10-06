@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<title>手順フロー</title>
+<link rel="stylesheet" href="flow.css">
+</head>
+<body>
+<div id="bar">
+  <span id="ttl"></span>
+  <button data-add="box" title="選択中の手順の下に追加(Tab)">＋ 手順 ▭</button>
+  <button data-add="decision">＋ 分岐 ◇</button>
+  <button data-add="terminal">＋ 開始/終了 ⬭</button>
+  <span class="sep"></span>
+  <button id="bShape" title="形を変更">形</button>
+  <button id="bColor" title="色を変更">色</button>
+  <button id="bDone" title="完了にする">✓ 完了</button>
+  <button id="bDel" title="削除(Delete)">🗑 削除</button>
+  <span class="sep"></span>
+  <button id="bUndo" title="Ctrl+Z">↶ 戻す</button>
+  <button id="bFit" title="Ctrl+0">全体表示</button>
+</div>
+<div id="stage">
+  <svg id="svg">
+    <defs>
+      <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#9fb0d0"/></marker>
+      <marker id="arrowSel" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#fff"/></marker>
+    </defs>
+    <g id="vp"><g id="edges"></g><g id="nodes"></g><g id="tmp"></g></g>
+  </svg>
+  <div id="empty">空きをダブルクリックして最初の手順を追加</div>
+  <textarea id="ed" hidden rows="1"></textarea>
+</div>
+<div id="hint">ダブルクリック: 追加/編集 ・ ●をドラッグ: 矢印(空きに離すと新規) ・ ドラッグ: 移動/画面移動 ・ ホイール: 拡大縮小 ・ Delete: 削除 ・ Tab: 続きを追加</div>
+<script src="flow.js"></script>
+</body>
+</html>

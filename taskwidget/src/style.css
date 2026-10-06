@@ -20,6 +20,9 @@ li .t { flex: 1; word-break: break-all; cursor: text; }
 li.done .t { text-decoration: line-through; opacity: .45; }
 li .x { visibility: hidden; background: none; border: 0; color: #e66; cursor: pointer; }
 li:hover .x { visibility: visible; }
+li .f { background: none; border: 0; color: #9ab; cursor: pointer; font-size: 12px; padding: 0 2px; visibility: hidden; white-space: nowrap; }
+li .f.has, li:hover .f { visibility: visible; }
+li .f.has { color: #7fb2ff; }
 li .edit { flex: 1; font: inherit; background: #111; color: #fff; border: 1px solid #567; border-radius: 3px; user-select: text; }
 #add { margin: 6px; padding: 6px 8px; font: inherit; color: #eee; background: rgba(255,255,255,.08);
   border: 1px solid rgba(255,255,255,.15); border-radius: 6px; outline: none; user-select: text; }
