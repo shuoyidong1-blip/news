@@ -18,20 +18,22 @@
   <button id="bDel" title="削除(Delete)">🗑 削除</button>
   <span class="sep"></span>
   <button id="bUndo" title="Ctrl+Z">↶ 戻す</button>
+  <button id="bZoomOut" title="縮小">－</button>
+  <button id="bZoomIn" title="拡大">＋</button>
   <button id="bFit" title="Ctrl+0">全体表示</button>
 </div>
 <div id="stage">
   <svg id="svg">
     <defs>
-      <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#9fb0d0"/></marker>
-      <marker id="arrowSel" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#fff"/></marker>
+      <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#b8a48c"/></marker>
+      <marker id="arrowSel" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#e8895a"/></marker>
     </defs>
     <g id="vp"><g id="edges"></g><g id="nodes"></g><g id="tmp"></g></g>
   </svg>
-  <div id="empty">空きをダブルクリックして最初の手順を追加</div>
+  <div id="empty">🌱 空いているところをダブルクリックして、最初の手順を書いてみましょう</div>
   <textarea id="ed" hidden rows="1"></textarea>
 </div>
-<div id="hint">ダブルクリック: 追加/編集 ・ ●をドラッグ: 矢印(空きに離すと新規) ・ ドラッグ: 移動/画面移動 ・ ホイール: 拡大縮小 ・ Delete: 削除 ・ Tab: 続きを追加</div>
+<div id="hint">ダブルクリック: 追加・編集 ／ ● をドラッグ: 矢印でつなぐ(空きに離すと新しい手順) ／ ドラッグ: 移動 ／ ピンチ・ホイール: 拡大縮小 ／ Delete: 削除 ／ Tab: 続きを追加</div>
 <script src="flow.js"></script>
 </body>
 </html>

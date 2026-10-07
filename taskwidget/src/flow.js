@@ -21,7 +21,8 @@ let editing = null;       // {kind, id, isNew}
 const undoStack = [];
 
 const SHAPES = ["box", "decision", "terminal"];
-const COLORS = [["#2b3040", "#6b7a99"], ["#1f3a5f", "#4d8fe0"], ["#1f4a3a", "#3fb27f"], ["#5a4020", "#e0a040"], ["#5a2430", "#e0607a"]];
+const COLORS = [["#fffaf0", "#e0c9a6"], ["#e3f0ff", "#9cc4f0"], ["#e5f5e6", "#9ad3a0"], ["#fff0d9", "#f2c27b"], ["#ffe6ec", "#f0a3b8"]];
+const HR = matchMedia("(pointer: coarse)").matches ? 10 : 6;
 const LH = 18;
 const ctx = document.createElement("canvas").getContext("2d");
 ctx.font = '14px "Segoe UI","Yu Gothic UI",sans-serif';
@@ -67,7 +68,7 @@ function drawNode(n) {
     "data-node": n.id, transform: `translate(${n.x},${n.y})`,
   }, gNodes);
   if (n.shape === "decision") el("polygon", { class: "shape", points: `0,${-h / 2} ${w / 2},0 0,${h / 2} ${-w / 2},0`, fill, stroke }, g);
-  else el("rect", { class: "shape", x: -w / 2, y: -h / 2, width: w, height: h, rx: n.shape === "terminal" ? h / 2 : 6, fill, stroke }, g);
+  else el("rect", { class: "shape", x: -w / 2, y: -h / 2, width: w, height: h, rx: n.shape === "terminal" ? h / 2 : 12, fill, stroke }, g);
   const t = el("text", { class: "txt", "text-anchor": "middle", "dominant-baseline": "central" }, g);
   lines.forEach((l, i) => {
     const s = el("tspan", { x: 0, y: (i - (lines.length - 1) / 2) * LH }, t);
@@ -75,11 +76,11 @@ function drawNode(n) {
   });
   if (n.done) {
     const bx = n.shape === "decision" ? w / 4 : w / 2 - 6, by = n.shape === "decision" ? -h / 4 : -h / 2 + 6;
-    el("circle", { cx: bx, cy: by, r: 8, fill: "#3fb27f" }, g);
+    el("circle", { cx: bx, cy: by, r: 8, fill: "#6bbf85" }, g);
     const c = el("text", { x: bx, y: by, "text-anchor": "middle", "dominant-baseline": "central", fill: "#fff", "font-size": 11, "pointer-events": "none" }, g);
     c.textContent = "✓";
   }
-  for (const [hx, hy] of [[0, -h / 2], [w / 2, 0], [0, h / 2], [-w / 2, 0]]) el("circle", { class: "handle", cx: hx, cy: hy, r: 6, "data-h": n.id }, g);
+  for (const [hx, hy] of [[0, -h / 2], [w / 2, 0], [0, h / 2], [-w / 2, 0]]) el("circle", { class: "handle", cx: hx, cy: hy, r: HR, "data-h": n.id }, g);
 }
 function drawEdge(e) {
   const p = edgeGeom(e);
@@ -225,6 +226,14 @@ $("bDone").onclick = () => { const n = nodeById(sel?.id); if (!n) return; snap()
 $("bDel").onclick = deleteSel;
 $("bUndo").onclick = undo;
 $("bFit").onclick = fit;
+function zoomBy(f) {
+  const r = svg.getBoundingClientRect(), mx = r.width / 2, my = r.height / 2;
+  const k = Math.min(2.5, Math.max(0.3, view.k * f));
+  view.x = mx - ((mx - view.x) * k) / view.k; view.y = my - ((my - view.y) * k) / view.k; view.k = k;
+  applyView(); saveSoon();
+}
+$("bZoomIn").onclick = () => zoomBy(1.25);
+$("bZoomOut").onclick = () => zoomBy(1 / 1.25);
 
 document.addEventListener("keydown", (e) => {
   if (editing) return;
@@ -237,12 +246,25 @@ document.addEventListener("keydown", (e) => {
 });
 
 // ---- ポインタ ----
+const touches = new Map();
+let pinch = null;
 let mode = null, drag = null, last = { t: 0, key: "", x: 0, y: 0 };
 svg.addEventListener("pointerdown", (e) => {
+  if (e.pointerType === "touch") {
+    touches.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    if (touches.size === 2) {
+      mode = null; drag = null; gTmp.replaceChildren();
+      svg.setPointerCapture(e.pointerId);
+      const [a, b] = [...touches.values()];
+      pinch = { d: Math.hypot(a.x - b.x, a.y - b.y) || 1, cx: (a.x + b.x) / 2, cy: (a.y + b.y) / 2, vx: view.x, vy: view.y, k: view.k };
+      return;
+    }
+    if (touches.size > 2) return;
+  }
   const hn = e.target.closest("[data-h]"), nd = e.target.closest("[data-node]"), ed = e.target.closest("[data-edge]");
   const key = nd ? "n" + nd.dataset.node : ed ? "e" + ed.dataset.edge : "bg";
   const now = performance.now();
-  const dbl = !hn && e.button === 0 && last.key === key && now - last.t < 400 && Math.hypot(e.clientX - last.x, e.clientY - last.y) < 6;
+  const dbl = !hn && e.button === 0 && last.key === key && now - last.t < 400 && Math.hypot(e.clientX - last.x, e.clientY - last.y) < (e.pointerType === "touch" ? 24 : 6);
   last = { t: dbl ? 0 : now, key, x: e.clientX, y: e.clientY };
   if (dbl) {
     if (key === "bg") createAt(toWorld(e.clientX, e.clientY));
@@ -263,6 +285,18 @@ svg.addEventListener("pointerdown", (e) => {
   else { select(null); pan(); }
 });
 svg.addEventListener("pointermove", (e) => {
+  if (touches.has(e.pointerId)) touches.set(e.pointerId, { x: e.clientX, y: e.clientY });
+  if (pinch) {
+    if (touches.size < 2) return;
+    const [a, b] = [...touches.values()];
+    const d = Math.hypot(a.x - b.x, a.y - b.y) || 1, cx = (a.x + b.x) / 2, cy = (a.y + b.y) / 2;
+    const r = svg.getBoundingClientRect();
+    const k = Math.min(2.5, Math.max(0.3, pinch.k * d / pinch.d));
+    const wx = (pinch.cx - r.left - pinch.vx) / pinch.k, wy = (pinch.cy - r.top - pinch.vy) / pinch.k;
+    view.k = k; view.x = cx - r.left - wx * k; view.y = cy - r.top - wy * k;
+    applyView();
+    return;
+  }
   if (mode === "pan") { view.x = drag.vx + e.clientX - drag.sx; view.y = drag.vy + e.clientY - drag.sy; applyView(); }
   else if (mode === "move") {
     if (!drag.moved) { if (Math.hypot(e.clientX - drag.sx, e.clientY - drag.sy) < 3) return; snap(); drag.moved = true; }
@@ -273,17 +307,25 @@ svg.addEventListener("pointermove", (e) => {
     gTmp.replaceChildren();
     const src = nodeById(drag.from), w = toWorld(e.clientX, e.clientY);
     const a = anchor(src, w.x, w.y);
-    el("line", { x1: a.x, y1: a.y, x2: w.x, y2: w.y, stroke: "#4d8fe0", "stroke-width": 2, "stroke-dasharray": "6 4", "marker-end": "url(#arrow)" }, gTmp);
+    el("line", { x1: a.x, y1: a.y, x2: w.x, y2: w.y, stroke: "#f2a65a", "stroke-width": 2, "stroke-dasharray": "6 4", "marker-end": "url(#arrow)" }, gTmp);
     const t = document.elementFromPoint(e.clientX, e.clientY)?.closest?.("[data-node]");
     const tn = t && nodeById(t.dataset.node);
     if (tn && tn.id !== src.id) {
       const d = dims(tn);
-      el("rect", { x: tn.x - d.w / 2 - 5, y: tn.y - d.h / 2 - 5, width: d.w + 10, height: d.h + 10, rx: 8, fill: "none", stroke: "#4d8fe0", "stroke-width": 2, "stroke-dasharray": "4 3" }, gTmp);
+      el("rect", { x: tn.x - d.w / 2 - 5, y: tn.y - d.h / 2 - 5, width: d.w + 10, height: d.h + 10, rx: 14, fill: "none", stroke: "#f2a65a", "stroke-width": 2, "stroke-dasharray": "4 3" }, gTmp);
     }
   }
 });
 function endPointer(e, cancelled) {
   try { svg.releasePointerCapture(e.pointerId); } catch {}
+  if (e.pointerType === "touch") {
+    touches.delete(e.pointerId);
+    if (pinch) {
+      if (touches.size < 2) { pinch = null; saveSoon(); }
+      mode = null; drag = null; gTmp.replaceChildren();
+      return;
+    }
+  }
   if (mode === "pan" || (mode === "move" && drag.moved)) saveSoon();
   if (mode === "connect" && !cancelled && Math.hypot(e.clientX - drag.x, e.clientY - drag.y) >= 8) {
     const t = document.elementFromPoint(e.clientX, e.clientY)?.closest?.("[data-node]");
@@ -303,7 +345,7 @@ svg.addEventListener("pointercancel", (e) => endPointer(e, true));
 svg.addEventListener("wheel", (e) => {
   e.preventDefault();
   const r = svg.getBoundingClientRect(), mx = e.clientX - r.left, my = e.clientY - r.top;
-  const k = Math.min(2.5, Math.max(0.3, view.k * (e.deltaY < 0 ? 1.1 : 1 / 1.1)));
+  const k = Math.min(2.5, Math.max(0.3, view.k * (e.ctrlKey ? Math.exp(-e.deltaY * 0.01) : e.deltaY < 0 ? 1.1 : 1 / 1.1)));
   view.x = mx - ((mx - view.x) * k) / view.k; view.y = my - ((my - view.y) * k) / view.k; view.k = k;
   applyView(); saveSoon();
 }, { passive: false });

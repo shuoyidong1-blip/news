@@ -6,7 +6,14 @@ const save = (k, v) => localStorage.setItem(k, JSON.stringify(v));
 
 const uid = () => "t" + Math.random().toString(36).slice(2, 9) + Date.now().toString(36);
 let tasks = load("tasks", []);
-if (tasks.some((t) => !t.id)) { tasks.forEach((t) => { t.id = t.id || uid(); }); save("tasks", tasks); }
+if (tasks.some((t) => !t.id)) {
+  // 旧版で id なしのまま保存された手順("undefined" キー)を、最初の id なしタスクへ引き継ぐ
+  const orphan = tasks.find((t) => !t.id);
+  tasks.forEach((t) => { t.id = t.id || uid(); });
+  const fs = load("flows", {});
+  if (fs.undefined) { fs[orphan.id] = fs.undefined; delete fs.undefined; save("flows", fs); }
+  save("tasks", tasks);
+}
 let cfg = Object.assign({ mode: "top", opacity: 85, fontsize: 14 }, load("cfg", {}));
 
 async function applyMode() {
@@ -76,7 +83,7 @@ function commit() { save("tasks", tasks); render(); }
 
 $("add").onkeydown = (e) => {
   if (e.key === "Enter" && e.target.value.trim()) {
-    tasks.push({ text: e.target.value.trim(), done: false });
+    tasks.push({ id: uid(), text: e.target.value.trim(), done: false });
     e.target.value = ""; commit();
   }
 };
