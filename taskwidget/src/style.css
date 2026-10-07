@@ -1,0 +1,29 @@
+:root { --op: .85; --fs: 14px; }
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; background: transparent; overflow: hidden;
+  font: var(--fs)/1.4 "Segoe UI", "Yu Gothic UI", sans-serif; color: #eee; user-select: none; }
+#app { height: 100%; display: flex; flex-direction: column; border-radius: 10px;
+  background: rgba(24, 26, 32, var(--op)); border: 1px solid rgba(255,255,255,.12); overflow: hidden; }
+header { display: flex; justify-content: space-between; align-items: center; padding: 4px 8px; cursor: move;
+  background: rgba(255,255,255,.06); font-weight: 600; }
+.btns button { background: none; border: 0; color: #bbb; cursor: pointer; font-size: 13px; padding: 2px 5px; }
+.btns button:hover { color: #fff; }
+#settings { padding: 8px; display: grid; gap: 6px; font-size: 12px; background: rgba(0,0,0,.25); }
+#settings[hidden] { display: none; }
+#settings label { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+#settings .row { justify-content: flex-start; }
+select { background: #222; color: #eee; border: 1px solid #444; border-radius: 4px; }
+#list { list-style: none; margin: 0; padding: 4px 6px; flex: 1; overflow-y: auto; }
+li { display: flex; align-items: flex-start; gap: 6px; padding: 3px 2px; border-radius: 4px; }
+li:hover { background: rgba(255,255,255,.07); }
+li .t { flex: 1; word-break: break-all; cursor: text; }
+li.done .t { text-decoration: line-through; opacity: .45; }
+li .x { visibility: hidden; background: none; border: 0; color: #e66; cursor: pointer; }
+li:hover .x { visibility: visible; }
+li .f { background: none; border: 0; color: #9ab; cursor: pointer; font-size: 12px; padding: 0 2px; visibility: hidden; white-space: nowrap; }
+li .f.has, li:hover .f { visibility: visible; }
+li .f.has { color: #7fb2ff; }
+li .edit { flex: 1; font: inherit; background: #111; color: #fff; border: 1px solid #567; border-radius: 3px; user-select: text; }
+#add { margin: 6px; padding: 6px 8px; font: inherit; color: #eee; background: rgba(255,255,255,.08);
+  border: 1px solid rgba(255,255,255,.15); border-radius: 6px; outline: none; user-select: text; }
+::-webkit-scrollbar { width: 6px; } ::-webkit-scrollbar-thumb { background: #555; border-radius: 3px; }
