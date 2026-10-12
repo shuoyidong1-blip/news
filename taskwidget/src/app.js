@@ -44,15 +44,41 @@ async function dropFlow(t) {
   try { const ex = await T.webviewWindow.WebviewWindow.getByLabel("flow-" + t.id); if (ex) await ex.close(); } catch {}
 }
 
+function startReorder(e, li) {
+  e.preventDefault();
+  const ul = $("list");
+  ul.setPointerCapture(e.pointerId);
+  li.classList.add("drag");
+  ul.onpointermove = (ev) => {
+    const others = [...ul.children].filter((x) => x !== li);
+    const next = others.find((x) => { const r = x.getBoundingClientRect(); return ev.clientY < r.top + r.height / 2; });
+    if (next) { if (li.nextSibling !== next) ul.insertBefore(li, next); }
+    else if (ul.lastChild !== li) ul.append(li);
+  };
+  ul.onpointerup = ul.onpointercancel = () => {
+    ul.onpointermove = ul.onpointerup = ul.onpointercancel = null;
+    const ids = [...ul.children].map((x) => x.dataset.id);
+    tasks = ids.map((id) => tasks.find((t) => t.id === id));
+    commit();
+  };
+}
+
 function render() {
   const flows = load("flows", {});
   const ul = $("list");
   ul.textContent = "";
   const sorted = [...tasks.keys()].sort((a, b) => tasks[a].done - tasks[b].done);
+  let rank = 0;
   for (const i of sorted) {
     const t = tasks[i];
     const li = document.createElement("li");
+    li.dataset.id = t.id;
     if (t.done) li.className = "done";
+    const g = document.createElement("span");
+    g.className = "g"; g.textContent = "⠿"; g.title = "ドラッグで優先順位を入れ替え";
+    g.onpointerdown = (e) => startReorder(e, li);
+    const no = document.createElement("span");
+    no.className = "no"; no.textContent = t.done ? "" : ++rank;
     const cb = document.createElement("input");
     cb.type = "checkbox"; cb.checked = t.done;
     cb.onchange = () => { t.done = cb.checked; commit(); };
@@ -75,7 +101,7 @@ function render() {
     f.textContent = n ? "🔀" + n : "🔀";
     f.title = "手順フローを開く";
     f.onclick = () => openFlow(t);
-    li.append(cb, span, f, x);
+    li.append(g, no, cb, span, f, x);
     ul.append(li);
   }
 }

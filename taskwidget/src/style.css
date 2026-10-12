@@ -27,3 +27,7 @@ li .edit { flex: 1; font: inherit; background: #111; color: #fff; border: 1px so
 #add { margin: 6px; padding: 6px 8px; font: inherit; color: #eee; background: rgba(255,255,255,.08);
   border: 1px solid rgba(255,255,255,.15); border-radius: 6px; outline: none; user-select: text; }
 ::-webkit-scrollbar { width: 6px; } ::-webkit-scrollbar-thumb { background: #555; border-radius: 3px; }
+li .g { color: #778; cursor: grab; touch-action: none; padding: 0 2px; opacity: .5; }
+li:hover .g { opacity: 1; }
+li .no { min-width: 1.1em; text-align: right; color: #7fb2ff; font-weight: 600; font-size: .85em; }
+li.drag { background: rgba(127, 178, 255, .25); }
