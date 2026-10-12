@@ -31,3 +31,5 @@ li .g { color: #778; cursor: grab; touch-action: none; padding: 0 2px; opacity: 
 li:hover .g { opacity: 1; }
 li .no { min-width: 1.1em; text-align: right; color: #7fb2ff; font-weight: 600; font-size: .85em; }
 li.drag { background: rgba(127, 178, 255, .25); }
+li.top { background: rgba(127, 178, 255, .16); border-left: 3px solid #7fb2ff; font-size: 1.15em; font-weight: 600; padding-top: 6px; padding-bottom: 6px; }
+li.top .no::before { content: "▶ "; }

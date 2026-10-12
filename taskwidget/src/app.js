@@ -74,6 +74,7 @@ function render() {
     const li = document.createElement("li");
     li.dataset.id = t.id;
     if (t.done) li.className = "done";
+    else if (rank === 0) li.className = "top";
     const g = document.createElement("span");
     g.className = "g"; g.textContent = "⠿"; g.title = "ドラッグで優先順位を入れ替え";
     g.onpointerdown = (e) => startReorder(e, li);
@@ -132,5 +133,19 @@ const inv = T.core.invoke;
 inv("plugin:autostart|is_enabled").then((v) => ($("autostart").checked = v)).catch(() => {});
 $("autostart").onchange = (e) =>
   inv(e.target.checked ? "plugin:autostart|enable" : "plugin:autostart|disable").catch(console.error);
+
+// ホットキー(Ctrl+Alt+T): 一時的に最前面へ出して追加欄にフォーカス。フォーカスが外れたら元のモードへ戻す
+if (T.event) {
+  T.event.listen("hotkey", async () => {
+    try {
+      await win.setAlwaysOnBottom(false);
+      await win.setAlwaysOnTop(true);
+      await win.show();
+      await win.setFocus();
+      $("add").focus();
+    } catch (e) { console.error(e); }
+  });
+  win.onFocusChanged(({ payload: focused }) => { if (!focused) applyMode(); });
+}
 
 applyStyle(); applyMode(); render();

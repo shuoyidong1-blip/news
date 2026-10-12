@@ -226,6 +226,62 @@ $("bDone").onclick = () => { const n = nodeById(sel?.id); if (!n) return; snap()
 $("bDel").onclick = deleteSel;
 $("bUndo").onclick = undo;
 $("bFit").onclick = fit;
+// ---- 画像書き出し ----
+const EXPORT_CSS = `text{font-family:"Yu Gothic UI","Meiryo UI","Segoe UI",sans-serif}.shape{stroke-width:2}.txt{fill:#4a4540;font-size:14px}
+.done .shape{opacity:.55}.done .txt{text-decoration:line-through;opacity:.6}.vis{stroke:#b8a48c;stroke-width:2;fill:none;stroke-linecap:round}
+.hit{display:none}.lbl{fill:#7a6a58;font-size:12px;paint-order:stroke;stroke:#fbf6ee;stroke-width:4px}`;
+function renderPng() {
+  return new Promise((resolve, reject) => {
+    if (!flow.nodes.length) return reject(new Error("empty"));
+    let x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9;
+    for (const n of flow.nodes) {
+      const { w, h } = dims(n);
+      x0 = Math.min(x0, n.x - w / 2); x1 = Math.max(x1, n.x + w / 2);
+      y0 = Math.min(y0, n.y - h / 2); y1 = Math.max(y1, n.y + h / 2);
+    }
+    const pad = 40, top = 40;
+    const W = x1 - x0 + pad * 2, H = y1 - y0 + pad + top;
+    const body = document.createElementNS(NS, "g");
+    body.append(gEdges.cloneNode(true), gNodes.cloneNode(true));
+    body.querySelectorAll(".handle").forEach((h) => h.remove());
+    body.querySelectorAll(".sel").forEach((h) => h.classList.remove("sel"));
+    body.querySelectorAll(".vis").forEach((l) => l.setAttribute("marker-end", "url(#arrow)"));
+    const title = (($("ttl").textContent) || "").replace(/[<&]/g, " ");
+    const xml = `<svg xmlns="${NS}" width="${W * 2}" height="${H * 2}" viewBox="${x0 - pad} ${y0 - top} ${W} ${H}">
+<style>${EXPORT_CSS}</style>${svg.querySelector("defs").outerHTML}
+<rect x="${x0 - pad}" y="${y0 - top}" width="${W}" height="${H}" fill="#fbf6ee"/>
+<text x="${x0 - pad + 14}" y="${y0 - top + 24}" font-size="16" font-weight="700" fill="#8a6a43">${title}</text>
+${new XMLSerializer().serializeToString(body)}</svg>`;
+    const img = new Image();
+    img.onload = () => {
+      const c = document.createElement("canvas");
+      c.width = W * 2; c.height = H * 2;
+      c.getContext("2d").drawImage(img, 0, 0);
+      c.toBlob((b) => (b ? resolve(b) : reject(new Error("toBlob"))), "image/png");
+    };
+    img.onerror = () => reject(new Error("image"));
+    img.src = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(xml);
+  });
+}
+function flash(btn, msg) {
+  const old = btn.textContent; btn.textContent = msg;
+  setTimeout(() => (btn.textContent = old), 1500);
+}
+function downloadBlob(blob, name) {
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob); a.download = name;
+  document.body.append(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 5000);
+}
+$("bSave").onclick = async () => {
+  try { downloadBlob(await renderPng(), (($("ttl").textContent) || "flow").replace(/[\\/:*?"<>|]/g, "_") + ".png"); flash($("bSave"), "保存しました"); }
+  catch (e) { console.error(e); flash($("bSave"), "失敗しました"); }
+};
+$("bCopy").onclick = async () => {
+  try { await navigator.clipboard.write([new ClipboardItem({ "image/png": await renderPng() })]); flash($("bCopy"), "コピーしました"); }
+  catch (e) { console.error(e); flash($("bCopy"), "失敗しました"); }
+};
+
 function zoomBy(f) {
   const r = svg.getBoundingClientRect(), mx = r.width / 2, my = r.height / 2;
   const k = Math.min(2.5, Math.max(0.3, view.k * f));
