@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<title>TaskWidget</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="app">
+  <header data-tauri-drag-region>
+    <span data-tauri-drag-region class="title">Tasks</span>
+    <span class="btns">
+      <button id="clear" title="完了済みを削除">🧹</button>
+      <button id="gear" title="設定">⚙</button>
+      <button id="quit" title="終了">✕</button>
+    </span>
+  </header>
+  <div id="settings" hidden>
+    <label>表示モード
+      <select id="mode">
+        <option value="top">常に最前面</option>
+        <option value="bottom">デスクトップ固定(最背面)</option>
+        <option value="normal">通常ウィンドウ</option>
+      </select>
+    </label>
+    <label>不透明度 <input id="opacity" type="range" min="30" max="100"></label>
+    <label>文字サイズ <input id="fontsize" type="range" min="11" max="22"></label>
+    <label class="row"><input id="autostart" type="checkbox"> Windows起動時に自動起動</label>
+  </div>
+  <ul id="list"></ul>
+  <input id="add" placeholder="＋ タスクを追加して Enter" autocomplete="off">
+</div>
+<script src="app.js"></script>
+</body>
+</html>
