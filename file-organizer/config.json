@@ -17,7 +17,7 @@
   "trash_dir": "~/FileOrganizer_Trash",
   "sorted_dir": "~/Documents/整理済み",
 
-  "exclude_dirs": ["node_modules", ".git", ".venv", "venv", "__pycache__", "AppData", "My Music", "My Pictures", "My Videos"],
+  "exclude_dirs": ["file-organizer", "node_modules", ".git", ".venv", "venv", "__pycache__", "AppData", "My Music", "My Pictures", "My Videos"],
   "exclude_paths": [],
   "exclude_exts": [".lnk", ".ini", ".url"],
 

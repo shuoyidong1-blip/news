@@ -26,7 +26,10 @@ def scan(cfg):
     targets = list({os.path.normcase(os.path.realpath(t)): t for t in targets}.values())
     excluded_paths = [expand(p) for p in cfg.get("exclude_paths", [])]
     excluded_paths += [expand(cfg["trash_dir"]), expand(cfg["sorted_dir"])]
+    # このツール自身のフォルダは、どこに置かれていても絶対に対象にしない
+    excluded_paths.append(os.path.dirname(os.path.abspath(__file__)))
     excl_dirs = {d.lower() for d in cfg.get("exclude_dirs", [])}
+    excl_dirs.add("file-organizer")  # 別の場所に展開したツールのコピーも対象外
     excl_exts = {e.lower() for e in cfg.get("exclude_exts", [])}
 
     files, seen = [], set()
