@@ -10,8 +10,8 @@ const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "
 const size = (b) => { const u = ["B", "KB", "MB", "GB", "TB"]; let i = 0; b = b || 0; while (b >= 1024 && i < 4) { b /= 1024; i++; } return `${b.toFixed(i ? 1 : 0)}${u[i]}`; };
 const date = (t) => new Date(t * 1000).toLocaleDateString("ja-JP");
 const CONF = { high: "確信度 高", mid: "確信度 中", low: "確信度 低" };
-const DECISION = { pending: "未判断", approve: "承認済み", keep: "残す" };
-const proposalText = (it) => it.action === "move" ? `移動 → ${it.dest}` : "退避フォルダへ移動（削除はしない）";
+const DECISION = { pending: "未判断", approve: "提案どおり", keep: "残す", trash: "退避する" };
+const proposalText = (it) => it.action === "move" && it.decision !== "trash" ? `移動 → ${it.dest}` : "退避フォルダへ移動（削除はしない）";
 
 function toast(msg) { const t = $("#toast"); t.textContent = msg; t.classList.add("show"); clearTimeout(t._h); t._h = setTimeout(() => t.classList.remove("show"), 2500); }
 
@@ -122,7 +122,7 @@ async function act(k) {
   if (k === "prev") { if (idx > 0) { idx--; render(); } return; }
   if (!it) return;
   if (k === "reveal") { await api(`/api/reveal/${it.id}`, {}); return; }
-  if (k === "approve" || k === "keep") {
+  if (k === "approve" || k === "keep" || k === "trash") {
     await api("/api/decide", { ids: [it.id], decision: k });
     it.decision = k;
     refreshCount();
@@ -135,7 +135,7 @@ document.querySelectorAll(".keys button").forEach((b) => (b.onclick = () => act(
 $("#backBtn").onclick = () => show("groups");
 document.addEventListener("keydown", (e) => {
   if (!$("#review").classList.contains("active") || e.ctrlKey || e.altKey || e.metaKey) return;
-  const map = { Enter: "approve", y: "approve", k: "keep", s: "skip", ArrowRight: "skip", z: "prev", ArrowLeft: "prev", o: "reveal" };
+  const map = { Enter: "approve", y: "approve", d: "trash", k: "keep", s: "skip", ArrowRight: "skip", z: "prev", ArrowLeft: "prev", o: "reveal" };
   if (e.key === "Escape") return show("groups");
   const k = map[e.key.length === 1 ? e.key.toLowerCase() : e.key];
   if (k) { e.preventDefault(); act(k); }
@@ -145,7 +145,7 @@ document.addEventListener("keydown", (e) => {
 async function loadSummary() {
   const rows = await api("/api/summary");
   refreshCount();
-  const trash = rows.filter((r) => r.action === "trash"), move = rows.filter((r) => r.action === "move");
+  const move = rows.filter((r) => r.action === "move" && r.decision !== "trash"), trash = rows.filter((r) => !move.includes(r));
   const total = rows.reduce((s, r) => s + r.size, 0);
   $("#summaryHead").innerHTML = rows.length ? `
     <div class="summary-box">

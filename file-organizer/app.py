@@ -50,6 +50,9 @@ def api_scan():
         conn.execute("""INSERT OR REPLACE INTO kept(path, mtime)
                         SELECT path, mtime FROM proposals WHERE decision='keep'""")
         kept = {os.path.normcase(r["path"]): r["mtime"] for r in conn.execute("SELECT * FROM kept")}
+        # 承認・退避の判断も、ファイルが変わっていなければ再スキャン後に引き継ぐ
+        prev = {r["path"]: (r["decision"], r["mtime"]) for r in conn.execute(
+            "SELECT path, decision, mtime FROM proposals WHERE executed=0 AND decision IN ('approve','trash')")}
         files = scanner.scan(cfg)
         props = rules.classify(files, cfg, kept)
         conn.execute("DELETE FROM proposals")
@@ -57,6 +60,8 @@ def api_scan():
             """INSERT INTO proposals(path,size,mtime,group_key,group_label,action,dest,reason,confidence)
                VALUES(:path,:size,:mtime,:group_key,:group_label,:action,:dest,:reason,:confidence)""",
             props)
+        conn.executemany("UPDATE proposals SET decision=? WHERE path=? AND ABS(mtime-?)<1",
+                         [(d, p, m) for p, (d, m) in prev.items()])
         conn.commit()
     return jsonify({"files": len(files), "proposals": len(props)})
 
@@ -66,7 +71,7 @@ def api_groups():
     rows = conn.execute("""
         SELECT group_key, group_label, confidence, action,
                COUNT(*) AS total, SUM(size) AS size,
-               SUM(decision='pending') AS pending, SUM(decision='approve') AS approved,
+               SUM(decision='pending') AS pending, SUM(decision IN ('approve','trash')) AS approved,
                SUM(decision='keep') AS kept
         FROM proposals WHERE executed=0
         GROUP BY group_key
@@ -89,7 +94,7 @@ def api_items():
 def api_decide():
     data = request.get_json()
     decision = data["decision"]
-    if decision not in ("pending", "approve", "keep"):
+    if decision not in ("pending", "approve", "keep", "trash"):
         abort(400)
     if "group" in data:
         conn.execute("""UPDATE proposals SET decision=? WHERE group_key=? AND executed=0
@@ -135,7 +140,7 @@ def api_reveal(pid):
 
 @app.get("/api/summary")
 def api_summary():
-    rows = conn.execute("""SELECT * FROM proposals WHERE decision='approve' AND executed=0
+    rows = conn.execute("""SELECT * FROM proposals WHERE decision IN ('approve','trash') AND executed=0
                            ORDER BY action, size DESC""").fetchall()
     return jsonify([dict(r) for r in rows])
 

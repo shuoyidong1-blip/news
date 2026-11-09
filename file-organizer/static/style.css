@@ -41,7 +41,7 @@ main { max-width: 980px; margin: 0 auto; padding: 20px; }
 .preview .none { color: var(--muted); }
 .keys { display: flex; gap: 8px; margin-top: 14px; flex-wrap: wrap; }
 .keys button { padding: 10px 14px; }
-.keys .approve { border-color: var(--ok); } .keys .keep { border-color: var(--keep); }
+.keys .approve { border-color: var(--ok); } .keys .keep { border-color: var(--keep); } .keys .trash { border-color: var(--low); }
 kbd { background: #eceef1; border: 1px solid #ccd; border-bottom-width: 2px; border-radius: 4px; padding: 0 5px; font-size: 12px; margin-right: 4px; }
 .done-msg { text-align: center; padding: 60px 0; grid-column: 1 / -1; }
 

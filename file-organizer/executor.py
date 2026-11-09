@@ -28,7 +28,7 @@ def execute(conn, cfg):
     batch = datetime.now().strftime("%Y%m%d_%H%M%S")
     trash_root = expand(cfg["trash_dir"])
     rows = conn.execute(
-        "SELECT * FROM proposals WHERE decision='approve' AND executed=0").fetchall()
+        "SELECT * FROM proposals WHERE decision IN ('approve','trash') AND executed=0").fetchall()
     done, skipped = 0, []
     for r in rows:
         src = r["path"]
@@ -40,7 +40,8 @@ def execute(conn, cfg):
         if st.st_size != r["size"] or abs(st.st_mtime - r["mtime"]) >= 1:
             skipped.append((src, "スキャン後に変更されたため保留（再スキャンしてください）"))
             continue
-        dst = r["dest"] if r["action"] == "move" else _trash_dest(trash_root, batch, src)
+        action = "trash" if r["decision"] == "trash" else r["action"]
+        dst = r["dest"] if action == "move" else _trash_dest(trash_root, batch, src)
         dst = _unique(dst)
         try:
             os.makedirs(os.path.dirname(dst), exist_ok=True)
@@ -49,7 +50,7 @@ def execute(conn, cfg):
             skipped.append((src, f"移動できない: {e}"))
             continue
         conn.execute("INSERT INTO history(batch, action, src, dst, ts) VALUES(?,?,?,?,?)",
-                     (batch, r["action"], src, dst, time.time()))
+                     (batch, action, src, dst, time.time()))
         conn.execute("UPDATE proposals SET executed=1 WHERE id=?", (r["id"],))
         done += 1
     conn.commit()
