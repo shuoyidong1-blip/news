@@ -1,2 +1,4 @@
 organizer.db
 __pycache__/
+error.log
+organizer.db-*

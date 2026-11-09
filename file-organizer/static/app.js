@@ -3,7 +3,7 @@ const api = async (url, body) => {
   const res = await fetch(url, body === undefined ? {} : {
     method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body),
   });
-  if (!res.ok) throw new Error(await res.text());
+  if (!res.ok) { const t = await res.text(); throw new Error(t.startsWith("<") ? `サーバーエラー (${res.status})` : t); }
   return res.json();
 };
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
@@ -66,7 +66,7 @@ $("#scanBtn").onclick = async () => {
     const r = await api("/api/scan", {});
     toast(`${r.files}件を調べ、${r.proposals}件を提案しました`);
     show("groups");
-  } catch (err) { toast("スキャン失敗: " + err.message); }
+  } catch (err) { alert("スキャン失敗:\n" + err.message); }
   b.disabled = false; b.textContent = "スキャン";
 };
 
@@ -160,8 +160,10 @@ async function loadSummary() {
   const btn = $("#execBtn");
   if (btn) btn.onclick = async () => {
     if (!confirm(`${rows.length}件を実行します。よろしいですか？`)) return;
-    btn.disabled = true;
-    const r = await api("/api/execute", {});
+    btn.disabled = true; btn.textContent = "実行中…（閉じずにお待ちください）";
+    let r;
+    try { r = await api("/api/execute", {}); }
+    catch (err) { alert(err.message); loadSummary(); return; }
     toast(`${r.done}件を実行しました${r.skipped.length ? `（${r.skipped.length}件はスキップ）` : ""}`);
     if (r.skipped.length) alert("スキップしたファイル:\n" + r.skipped.map(([p, why]) => `${p}\n  → ${why}`).join("\n"));
     loadSummary();

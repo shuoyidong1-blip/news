@@ -33,7 +33,8 @@ CREATE TABLE IF NOT EXISTS history(
 
 
 def connect(path=None):
-    conn = sqlite3.connect(path or DB_PATH, check_same_thread=False)
+    conn = sqlite3.connect(path or DB_PATH, timeout=30)
     conn.row_factory = sqlite3.Row
+    conn.execute("PRAGMA journal_mode=WAL")
     conn.executescript(SCHEMA)
     return conn

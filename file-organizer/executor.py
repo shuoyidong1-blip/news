@@ -52,6 +52,7 @@ def execute(conn, cfg):
         conn.execute("INSERT INTO history(batch, action, src, dst, ts) VALUES(?,?,?,?,?)",
                      (batch, action, src, dst, time.time()))
         conn.execute("UPDATE proposals SET executed=1 WHERE id=?", (r["id"],))
+        conn.commit()  # 1件ごとに確定（途中で止まっても記録が残る）
         done += 1
     conn.commit()
     return {"batch": batch, "done": done, "skipped": skipped}
@@ -76,6 +77,7 @@ def undo(conn, batch):
             continue
         conn.execute("UPDATE history SET undone=1 WHERE id=?", (r["id"],))
         conn.execute("UPDATE proposals SET executed=0, decision='pending' WHERE path=?", (r["src"],))
+        conn.commit()
         restored += 1
     conn.commit()
     return {"restored": restored, "failed": failed}

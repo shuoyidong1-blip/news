@@ -4,7 +4,7 @@
 }
 * { box-sizing: border-box; }
 body { margin: 0; font-family: "Segoe UI", "Yu Gothic UI", "Meiryo", sans-serif; background: var(--bg); color: var(--text); }
-header { display: flex; align-items: center; gap: 16px; padding: 12px 20px; background: var(--panel); border-bottom: 1px solid var(--line); position: sticky; top: 0; flex-wrap: wrap; }
+header { display: flex; align-items: center; gap: 16px; padding: 12px 20px; background: var(--panel); border-bottom: 1px solid var(--line); position: sticky; top: 0; z-index: 10; flex-wrap: wrap; }
 h1 { font-size: 18px; margin: 0; }
 nav { display: flex; gap: 4px; flex: 1; }
 button { font: inherit; border: 1px solid var(--line); background: var(--panel); border-radius: 6px; padding: 6px 12px; cursor: pointer; }

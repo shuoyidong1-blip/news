@@ -11,7 +11,10 @@ COPY_PATTERN = re.compile(r"(\(\d+\)|コピー|- copy|\bcopy\b|のコピー)", r
 
 
 def _fmt_date(ts):
-    return datetime.fromtimestamp(ts).strftime("%Y/%m/%d")
+    try:
+        return datetime.fromtimestamp(ts).strftime("%Y/%m/%d")
+    except (OSError, OverflowError, ValueError):
+        return "不明"
 
 
 def _keep_score(f, download_dirs):
