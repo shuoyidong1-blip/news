@@ -1,0 +1,41 @@
+{
+  "targets": [
+    "~/Downloads",
+    "~/Desktop",
+    "~/Documents",
+    "~/OneDrive/Desktop",
+    "~/OneDrive/Documents",
+    "~/OneDrive/デスクトップ",
+    "~/OneDrive/ドキュメント"
+  ],
+  "move_from": [
+    "~/Downloads",
+    "~/Desktop",
+    "~/OneDrive/Desktop",
+    "~/OneDrive/デスクトップ"
+  ],
+  "trash_dir": "~/FileOrganizer_Trash",
+  "sorted_dir": "~/Documents/整理済み",
+
+  "exclude_dirs": ["node_modules", ".git", ".venv", "venv", "__pycache__", "AppData", "My Music", "My Pictures", "My Videos"],
+  "exclude_paths": [],
+  "exclude_exts": [".lnk", ".ini", ".url"],
+
+  "installer_days": 90,
+  "archive_days": 90,
+  "unused_days": 365,
+
+  "temp_exts": [".tmp", ".temp", ".log", ".bak", ".old", ".crdownload", ".part", ".dmp"],
+  "installer_exts": [".exe", ".msi", ".msix", ".appx", ".iso"],
+  "archive_exts": [".zip", ".7z", ".rar", ".tar", ".gz", ".lzh"],
+
+  "move_categories": {
+    "画像": [".jpg", ".jpeg", ".png", ".gif", ".bmp", ".webp", ".heic", ".svg"],
+    "PDF": [".pdf"],
+    "動画": [".mp4", ".mov", ".avi", ".mkv", ".wmv"],
+    "音声": [".mp3", ".wav", ".m4a", ".flac"],
+    "文書": [".doc", ".docx", ".txt", ".rtf", ".odt", ".md"],
+    "表計算": [".xls", ".xlsx", ".csv", ".ods"],
+    "スライド": [".ppt", ".pptx", ".odp"]
+  }
+}

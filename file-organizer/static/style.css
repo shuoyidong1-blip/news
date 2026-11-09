@@ -1,0 +1,56 @@
+:root {
+  --bg: #f6f7f9; --panel: #fff; --text: #1d2228; --muted: #69727d; --line: #e2e5e9;
+  --accent: #2f6fde; --ok: #1f9d55; --keep: #8a6d00; --high: #1f9d55; --mid: #c27c0e; --low: #b23b3b;
+}
+* { box-sizing: border-box; }
+body { margin: 0; font-family: "Segoe UI", "Yu Gothic UI", "Meiryo", sans-serif; background: var(--bg); color: var(--text); }
+header { display: flex; align-items: center; gap: 16px; padding: 12px 20px; background: var(--panel); border-bottom: 1px solid var(--line); position: sticky; top: 0; flex-wrap: wrap; }
+h1 { font-size: 18px; margin: 0; }
+nav { display: flex; gap: 4px; flex: 1; }
+button { font: inherit; border: 1px solid var(--line); background: var(--panel); border-radius: 6px; padding: 6px 12px; cursor: pointer; }
+button:hover { border-color: var(--accent); }
+button.primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+button.danger { background: var(--ok); color: #fff; border-color: var(--ok); }
+.tab.active { background: var(--text); color: #fff; }
+main { max-width: 980px; margin: 0 auto; padding: 20px; }
+.view { display: none; } .view.active { display: block; }
+.hint { color: var(--muted); font-size: 14px; }
+
+.group { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; margin-bottom: 10px; display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+.group .info { flex: 1; min-width: 260px; }
+.group .label { font-weight: 600; }
+.group .meta { color: var(--muted); font-size: 13px; margin-top: 4px; }
+.group.done { opacity: .55; }
+.badge { display: inline-block; font-size: 12px; padding: 1px 8px; border-radius: 10px; color: #fff; margin-right: 6px; }
+.badge.high { background: var(--high); } .badge.mid { background: var(--mid); } .badge.low { background: var(--low); }
+.group .actions { display: flex; gap: 6px; }
+
+.review-head { display: flex; gap: 12px; align-items: center; margin-bottom: 12px; }
+#reviewTitle { font-weight: 600; flex: 1; }
+.card { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 18px; display: grid; grid-template-columns: 1fr 1fr; gap: 18px; min-height: 340px; }
+.card .name { font-size: 20px; font-weight: 700; word-break: break-all; }
+.card .path { color: var(--muted); font-size: 13px; word-break: break-all; margin: 6px 0 14px; }
+.card dl { display: grid; grid-template-columns: 90px 1fr; gap: 6px 10px; font-size: 14px; margin: 0; }
+.card dt { color: var(--muted); }
+.card .proposal { margin-top: 16px; padding: 10px 12px; background: #eef3fd; border-radius: 8px; font-weight: 600; word-break: break-all; }
+.card .decided { margin-top: 10px; font-size: 13px; color: var(--muted); }
+.preview { background: #f0f1f3; border-radius: 8px; display: flex; align-items: center; justify-content: center; overflow: hidden; max-height: 420px; }
+.preview img { max-width: 100%; max-height: 420px; object-fit: contain; }
+.preview iframe { width: 100%; height: 420px; border: 0; }
+.preview pre { margin: 0; padding: 10px; font-size: 12px; white-space: pre-wrap; align-self: flex-start; width: 100%; max-height: 420px; overflow: auto; }
+.preview .none { color: var(--muted); }
+.keys { display: flex; gap: 8px; margin-top: 14px; flex-wrap: wrap; }
+.keys button { padding: 10px 14px; }
+.keys .approve { border-color: var(--ok); } .keys .keep { border-color: var(--keep); }
+kbd { background: #eceef1; border: 1px solid #ccd; border-bottom-width: 2px; border-radius: 4px; padding: 0 5px; font-size: 12px; margin-right: 4px; }
+.done-msg { text-align: center; padding: 60px 0; grid-column: 1 / -1; }
+
+table { width: 100%; border-collapse: collapse; background: var(--panel); font-size: 13px; margin-top: 12px; }
+th, td { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--line); word-break: break-all; }
+td.num { text-align: right; white-space: nowrap; }
+.summary-box { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 16px; display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+.summary-box .big { font-size: 18px; font-weight: 700; flex: 1; }
+
+#toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: var(--text); color: #fff; padding: 10px 16px; border-radius: 8px; opacity: 0; transition: opacity .2s; pointer-events: none; max-width: 90vw; }
+#toast.show { opacity: .95; }
+@media (max-width: 700px) { .card { grid-template-columns: 1fr; } }

@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ファイル整理アシスタント</title>
+<link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+<header>
+  <h1>ファイル整理アシスタント</h1>
+  <nav>
+    <button data-tab="groups" class="tab active">① 判断する</button>
+    <button data-tab="summary" class="tab">② 実行する <span id="approvedCount"></span></button>
+    <button data-tab="history" class="tab">③ 履歴・取り消し</button>
+  </nav>
+  <button id="scanBtn" class="primary">スキャン</button>
+</header>
+
+<main>
+  <!-- グループ一覧 -->
+  <section id="groups" class="view active">
+    <p class="hint">提案はまだ実行されません。ここでの判断は「② 実行する」を押すまでファイルに影響しません。</p>
+    <div id="groupList"></div>
+  </section>
+
+  <!-- 1件ずつ判断 -->
+  <section id="review" class="view">
+    <div class="review-head">
+      <button id="backBtn">← 一覧に戻る (Esc)</button>
+      <span id="reviewTitle"></span>
+      <span id="reviewProgress"></span>
+    </div>
+    <div id="reviewCard" class="card"></div>
+    <div class="keys">
+      <button data-k="approve" class="approve"><kbd>Enter</kbd> 提案どおり</button>
+      <button data-k="keep" class="keep"><kbd>K</kbd> 残す</button>
+      <button data-k="skip"><kbd>S</kbd> 後回し</button>
+      <button data-k="prev"><kbd>Z</kbd> 1つ戻る</button>
+      <button data-k="reveal"><kbd>O</kbd> エクスプローラで表示</button>
+    </div>
+  </section>
+
+  <!-- 実行前の確認 -->
+  <section id="summary" class="view">
+    <div id="summaryHead"></div>
+    <div id="summaryList"></div>
+  </section>
+
+  <!-- 履歴 -->
+  <section id="history" class="view">
+    <p class="hint">退避したファイルは「退避フォルダ」に残っています。不要と確信できたら、退避フォルダをご自身で削除してください。</p>
+    <button id="openTrash">退避フォルダを開く</button>
+    <div id="historyList"></div>
+  </section>
+</main>
+<div id="toast"></div>
+<script src="/static/app.js"></script>
+</body>
+</html>
