@@ -17,7 +17,7 @@ const CONFIG = {
 };
 
 // 就活予定とみなすキーワード（タイトル）
-const SHUKATSU_TITLE_RE = /説明会|面接|面談|ES|エントリーシート|インターン|仕事体験|選考|Web.?テスト|WEBテスト|適性検査|SPI|玉手箱|GD|グループディスカッション|内定|OB訪問|OG訪問|座談会|セミナー|#就活/i;
+const SHUKATSU_TITLE_RE = /説明会|面接|面談|ES|エントリーシート|インターン|仕事体験|選考|Web.?テスト|WEBテスト|適性検査|SPI|玉手箱|GD|グループディスカッション|内定|OB訪問|OG訪問|座談会|セミナー|ウェビナー|オープンカンパニー|業界研究|仕事研究|#就活/i;
 const MYNAVI_DESC_RE = /job\.mynavi\.jp|マイナビ/;
 
 const P = { // Notion プロパティ名
@@ -97,7 +97,10 @@ function pullFromCalendar_(pages, byEventId, companies) {
     }
 
     // 重複（同じタイトル・同じ開始時刻）
-    const dup = pages.find(p => p.title === (ev.summary || '').trim() && sameStart_(p, ev));
+    // マイナビは「(株)〇〇」だけの短い予定を別に作ることがあるので、片方を含むものも重複扱い
+    const evTitle = (ev.summary || '').trim();
+    const dup = pages.find(p => sameStart_(p, ev) &&
+      (p.title === evTitle || (p.title && evTitle && (p.title.indexOf(evTitle) >= 0 || evTitle.indexOf(p.title) >= 0))));
     if (dup) { props.setProperty('dup:' + ev.id, '1'); return; }
 
     const created = createPage_(ev, companies);
@@ -245,7 +248,7 @@ function classify_(t) {
   if (/ES|エントリーシート|締切|締め切り/.test(t)) return 'ES締切';
   if (/インターン|仕事体験/.test(t)) return 'インターン';
   if (/面談|OB訪問|OG訪問|座談会/.test(t)) return '面談';
-  if (/説明会|セミナー/.test(t)) return '説明会';
+  if (/説明会|セミナー|ウェビナー|オープンカンパニー|業界研究|仕事研究|仕事を知る/.test(t)) return '説明会';
   return 'その他';
 }
 
