@@ -26,8 +26,17 @@
     <label>不透明度 <input id="opacity" type="range" min="30" max="100"></label>
     <label>文字サイズ <input id="fontsize" type="range" min="11" max="22"></label>
     <label class="row"><input id="autostart" type="checkbox"> Windows起動時に自動起動</label>
+    <label class="row"><input id="buddyOn" type="checkbox"> キャラを表示する</label>
+    <label>キャラ・揺れの頻度
+      <select id="freq"><option value="low">控えめ</option><option value="normal">ふつう</option><option value="high">多め</option></select>
+    </label>
+    <label class="row"><input id="pulseOn" type="checkbox"> 1位のタスクをたまに揺らす</label>
+    <label>キャラ画像
+      <span><input id="imgFile" type="file" accept="image/*" hidden><button id="imgBtn" type="button">変更</button> <button id="imgReset" type="button">標準</button></span>
+    </label>
   </div>
   <ul id="list"></ul>
+  <div id="buddy"><div id="char" class="buddy" title="クリックで話しかける"></div><div id="bubble" hidden></div></div>
   <input id="add" placeholder="＋ タスクを追加して Enter" autocomplete="off">
 </div>
 <script src="app.js"></script>
